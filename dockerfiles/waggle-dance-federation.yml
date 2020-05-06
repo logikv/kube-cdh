@@ -1,0 +1,14 @@
+primary-meta-store:
+  access-control-type: READ_AND_WRITE_AND_CREATE
+  latency: 0
+  name: local
+  remote-meta-store-uris: thrift://192.168.1.42:9083
+
+federated-meta-stores:
+  - remote-meta-store-uris: thrift://192.168.1.42:9083
+    name: sub
+    database-prefix: sub_
+    access-control-type: READ_ONLY
+    subscriptionsHandlerType: DEFAULT
+    mapped-databases:
+      - .*_cap

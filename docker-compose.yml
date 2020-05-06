@@ -1,0 +1,96 @@
+version: "2.4"
+volumes:
+    krb5kdc-data:
+
+services:
+  kdc-server:
+    build:
+      context: kdc-server/
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "88:88"
+      - "464:464"
+      - "749:749"
+    environment:
+       KRB5_REALM: CLOUDERA
+       KRB5_KDC: kdc-server
+       KRB5_PASS: 123123123
+    hostname: kdc-server
+    healthcheck:
+      test: ["CMD", "klist"]
+      interval: 1m30s
+      timeout: 10s
+
+  namenode:
+    build:
+      context: namenode/
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "88"
+      - "464"
+      - "749"
+      - "8020"
+    hostname: namenode
+    depends_on:
+      - kdc-server
+
+  yarnmaster:
+    build:
+      context: yarnmaster/
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8032"
+      - "8080"
+      - "88"
+      - "464"
+      - "749"
+    hostname: yarnmaster
+    depends_on:
+      - namenode
+
+  datanode1:
+    build:
+      context: datanode/
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "50020"
+      - "50075"
+      - "8042"
+      - "88"
+      - "464"
+      - "749"
+    hostname: datanode1
+    depends_on:
+      - yarnmaster
+
+  datanode2:
+    build:
+      context: datanode/
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "50020"
+      - "50075"
+      - "8042"
+      - "88"
+      - "464"
+      - "749"
+    hostname: datanode2
+    depends_on:
+      - yarnmaster
+
+  edgenode:
+    build:
+      context: edgenode/
+      dockerfile: Dockerfile
+    restart: always
+    hostname: edgenode
+    depends_on:
+      - datanode1
+      - datanode2
+
+
